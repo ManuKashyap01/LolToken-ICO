@@ -32,4 +32,12 @@ contract LolTokenSale{
         //trigger sell event
         emit Sell(msg.sender, _numberOfTokens);
     }
+    function endSale() public{
+        //require admin only access
+        require(msg.sender==admin);
+        //transfer remaing tokens back to admin
+        require(tokenContract.transfer(admin, tokenContract.balanceOf(address(this))));
+        //destroy this contract
+        selfdestruct(payable(admin));
+    }
 }
