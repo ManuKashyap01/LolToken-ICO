@@ -2,6 +2,10 @@ App={
     web3Provider:null,
     contracts:{},
     account:'0x0',
+    loading:false,
+    tokenPrice:1000000000000000,
+    tokenSold:0,
+    tokensAvailable:750000,
     init:function(){
         console.log('App is running!')
     },
@@ -35,11 +39,34 @@ App={
                 App.contracts.LolToken.deployed().then(function(lolToken){
                     console.log("LolToken contract address: ",lolToken.address)
                 })
+    
+                App.listenForEvents()
+
                 return App.render()
             })
         })
     },
+    listenForEvents:function(){
+        App.contracts.LolTokenSale.deployed().then(function(instance){
+            instance.Sell({},{
+                formBlock:0,
+                toBlock:'latest'
+            }).watch(function(error,event){
+                console.log('event triggered',event)
+                App.render()
+            })
+        })
+    },
     render:function(){
+        if(App.loading){
+            return;
+        }
+        App.loading=true;
+        let loader=$('#loader')
+        let content=$('#content')
+
+        loader.show()
+        content.hide()
         //metamask needs to be connected to current site to access accounts
         web3.eth.getAccounts(function(err,account){
             if(err===null){
@@ -47,6 +74,49 @@ App={
                 App.account=account
                 $('#accountAddress').html("Your Account: "+account)
             }
+        })
+        //LolTokenSale contract is loaded
+        App.contracts.LolTokenSale.deployed().then(function(instance){    
+            lolTokenSaleInstance=instance
+            return lolTokenSaleInstance.tokenPrice()
+        }).then(function(price){
+            App.tokenPrice=price
+            $('.token-price').html(web3.fromWei(App.tokenPrice,'ether').toNumber())
+            return lolTokenSaleInstance.tokenSold()
+        }).then(function(tokenSold){
+            App.tokenSold=tokenSold
+            $('.tokens-sold').html(App.tokenSold.toNumber())
+            $('.tokens-available').html(App.tokensAvailable)
+            let progressPercent=(App.tokenSold.toNumber()/App.tokensAvailable)*100
+            $('#progress').css('width',progressPercent+'%')
+            return App.contracts.LolToken.deployed()
+        }).then(function(instance){
+            lolTokenInstance=instance
+            return lolTokenInstance.balanceOf(App.account)
+        }).then(function(balance){
+            $('.lol-balance').html(balance.toNumber())
+            
+            App.loading=false
+            loader.hide()
+            content.show()
+        })
+    },
+    buyTokens:function(){
+        $('#content').hide()
+        $('#loader').show()
+        let numberOfTokens=$('#numberOfTokens').val()
+        App.contracts.LolTokenSale.deployed().then(function(instance){
+            lolTokenSaleInstance=instance
+            console.log(App.account)
+            return lolTokenSaleInstance.buyTokens(numberOfTokens,{
+                from:App.account.toString(), //account must be of string type
+                value:App.tokenPrice.toNumber()*numberOfTokens,
+                gas:500000
+            })
+        }).then(function(receipt){
+            console.log('Tokens purchasing')
+            $('.form').trigger('reset')
+            //wait for sell event
         })
     }
 }
