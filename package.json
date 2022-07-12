@@ -1,0 +1,17 @@
+{
+    "name":"lol-token-sale",
+    "version": "1.0.0",
+    "description": "Lol Token Sale ICO",
+    "main": "truffle-config.js",
+    "directories": {
+        "test": "test"
+    },    
+    "scripts":{
+        "dev":"lite-server"
+    },
+    "author": "Manu Kashyap",
+    "license": "MIT",
+    "devDependencies": {
+        "lite-server":"^2.3.0"
+    }
+}
