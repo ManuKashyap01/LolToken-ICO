@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./css/bootstrap.min.css" />
   </head>
   <body>
+    <!-- written the HTML according to the bootstrap style structuring -->
     <div class="container" style="width: 650px">
       <div class="row">
         <div class="col-lg-12">
@@ -25,9 +26,13 @@
             <span class="lol-balance"></span>&nbsp;LOL
           </p>
           <br />
+          <!-- setting onSubmit property on the form to call App.buyTokens() and
+            return false as default
+          -->
           <form onSubmit="App.buyTokens(); return false;" role="form">
             <div class="form-group">
               <div class="input-group">
+                <!-- here pattern restricts the use of decimals or negatives -->
                 <input
                   type="number"
                   id="numberOfTokens"
@@ -37,6 +42,7 @@
                   name="number"
                   class="form-control input-lg"
                 />
+
                 <span class="input-group-btn">
                   <button type="submit" class="btn btn-primary btn-lg">
                     Buy Tokens

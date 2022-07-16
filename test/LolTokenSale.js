@@ -18,9 +18,11 @@ contract(LolTokenSale,function(accounts){
             return TokenSalecontractInstance.tokenContract()
             //returns the address of  LolToken contract
         }).then(function(address){
+            //checks if the LolToken instacne was created in the LolTokenSale contract
             assert.notEqual(address,0x0,'LolToken contract address was not assigned')
             return TokenSalecontractInstance.tokenPrice()
         }).then(function(price){
+            //checks the tokenPrice
             assert.equal(price.toNumber(),tokenPrice,'LolToken price value does not match')
         })
     })
@@ -63,6 +65,7 @@ contract(LolTokenSale,function(accounts){
             assert(error.message.toString().indexOf('revert')>=0,'token limit exceeded')
         })
     })
+    //TODO Learn about truffle-assertions
     it('checks for the end of token sale',function(){
         return LolToken.deployed().then(function(instance){
             TokenContractInstance=instance

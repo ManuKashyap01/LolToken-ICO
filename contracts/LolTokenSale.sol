@@ -8,16 +8,18 @@ contract LolTokenSale{
     uint public tokenPrice;
     uint public tokenSold;
 
-    event Sell(address indexed _buyer,uint _numberOfTokens);
+    event Sell(address indexed _buyer,uint _numberOfTokens); //Sell event
 
     constructor(LolToken _tokenContract,uint _tokenPrice){  
         admin=msg.sender;
+        //admin is the person who deployed this contract
         tokenContract=_tokenContract;
+        //tokenContract is an instance of LolToken contract
         tokenPrice=_tokenPrice;
         tokenSold=0;
     }   
     function _multiply(uint x,uint y) pure internal returns(uint z){
-        require(y == 0 || (z = x * y) / y == x);
+        require(y == 0 || (z = x * y) / y == x); //safe multiply function
     }
     function buyTokens(uint _numberOfTokens) public payable{
         //require value is equal to tokens
