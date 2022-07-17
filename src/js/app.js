@@ -52,7 +52,7 @@ App={
                     console.log("LolToken contract address: ",lolToken.address)
                 })
                 
-                //listening for the Sell event
+                //listening for the Sell event 
                 App.listenForEvents()
                 //rendering the changes to the client side
                 return App.render()
@@ -65,7 +65,7 @@ App={
             //first argument object is to specify the filters for our event(if necessary)
             instance.Sell({},{
                 // we are listening from the 0th block to the latest block
-                formBlock:0,
+                fromBlock:0,
                 toBlock:'latest'
             }).watch(function(error,event){ //watch this event
                 console.log('event triggered',event)
@@ -150,7 +150,7 @@ App={
                 gas:500000
             })
         }).then(function(receipt){
-            console.log('Tokens purchasing')
+            console.log('Tokens bought!')
             $('.form').trigger('reset') //reset number of tokens in the form input
             //wait for sell event
             // $('#content').show()
