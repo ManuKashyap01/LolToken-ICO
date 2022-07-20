@@ -14,20 +14,56 @@ App={
     tokensAvailable:750000,
     init:function(){
         console.log('App is running!')
+        return App.initWeb3()
     },
     //Setting a provider for web3
     initWeb3:function(){
-        if(typeof web3 !==undefined){
+        $('#loader').hide()
+        $('#content').hide()
+        $('#buttonDisplay').show()
+        const btn=document.getElementById('connectButton')
+        let interval
+        if (typeof window.ethereum !== 'undefined') {
             //If web3 instance is already provided by metamask
-            App.web3Provider=web3.currentProvider
-            web3=new Web3(web3.currentProvider)
+            if(interval!==undefined){
+                clearInterval(interval)
+            }
+            console.log('metamask')
+            //Click to connect to metamask
+            btn.innerText='Connect to MetaMask!'
+            const onClickConnect = async () => {
+                console.log('button clicked')
+            try {
+                // Will open the MetaMask UI
+                // You should disable this button while the request is pending!
+                btn.disabled=true
+                await ethereum.request({ method: 'eth_requestAccounts' });
+            } catch (error) {
+                console.error(error);
+            }
+            }
+            btn.addEventListener('click',function(){
+                onClickConnect().then(function(){
+                    App.web3Provider=web3.currentProvider
+                    web3=new Web3(web3.currentProvider)
+                    return App.initContracts()
+                })
+            })
         }else{
             //specify default instance if no web3 instance provided
             //default instace of provider is that of Gnache
-            App.web3Provider=new Web3.providers.HttpProvider('http://localhost:7545')
-            web3=new Web3(App.web3Provider)
+            // App.web3Provider=new Web3.providers.HttpProvider('http://localhost:7545')
+            // web3=new Web3(App.web3Provider)
+            btn.innerText='Click here to install MetaMask!'
+            btn.onclick=function(){
+                window.open('https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en')
+            }
+            console.log(interval)
+            interval=setInterval(function(){
+                window.location.reload()
+            },5000)
         }
-        return App.initContracts()
+        
     },
     //Initializing contracts to interact with our contracts
     initContracts:function(){
@@ -53,6 +89,11 @@ App={
                 
                 //listening for the Sell event 
                 App.listenForEvents()
+                window.ethereum.on('accountsChanged', function (accounts) {
+                    App.account=accounts[0]
+                    App.render()
+                // Time to reload your interface with accounts[0]!
+                })
                 //rendering the changes to the client side
                 return App.render()
             })
@@ -80,9 +121,10 @@ App={
         }
         App.loading=true; //Loading state equals true until all the promises 
         // from the contracts are resolved
-
+        $('#buttonDisplay').hide()
         let loader=$('#loader')
         let content=$('#content')
+        $('#numberOfTokens').val('1') //reset number of tokens in the form input
 
         //content is hidden when the promises are resolved
         loader.show() 
@@ -99,16 +141,17 @@ App={
         //Done in same fashion as in truffle tests
         App.contracts.LolTokenSale.deployed().then(function(instance){    
             lolTokenSaleInstance=instance
+            console.log(lolTokenSaleInstance)
             return lolTokenSaleInstance.tokenPrice()
         }).then(function(price){
             //Updating the token price that comes from LolTokenSale contract
-            App.tokenPrice=price
-            
+            App.tokenPrice=price.toNumber()
+            console.log(price.toNumber())
             //1.printing the token price in ether on the frontend using 
             //web3.fromWei()
             //2.we also need to convert tokenPrice to Number in order to display it 
             // on the client side
-            $('.token-price').html(web3.fromWei(App.tokenPrice,'ether').toNumber())
+            $('.token-price').html(web3.fromWei(App.tokenPrice,'ether'))
             return lolTokenSaleInstance.tokenSold()
         }).then(function(tokenSold){
             //Updating tokenSold and tokensAvailable
@@ -145,16 +188,19 @@ App={
             return lolTokenSaleInstance.buyTokens(numberOfTokens,{
                 //metadata for the buyTokens() function call
                 from:App.account.toString(), //account must be of string type
-                value:App.tokenPrice.toNumber()*numberOfTokens,
+                value:App.tokenPrice*numberOfTokens,
                 gas:500000
             })
         }).then(function(receipt){
             console.log('Tokens bought!')
-            $('.form').trigger('reset') //reset number of tokens in the form input
             //wait for sell event
             // $('#content').show()
             // $('#loader').hide()
-            
+        }).catch(function(err){
+            console.log(err)
+            if(err.code===4001){
+                App.render()
+            }
         })
     }
 }
@@ -162,6 +208,5 @@ $(function(){
     //whenever the window loads call the functions present in the callback function
     $(window).load(function(){
         App.init()
-        App.initWeb3()
     })
 })
