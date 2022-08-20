@@ -1,2 +1,2 @@
-# LolToken
-LolToken is a smart contract cryptocurrency compliant with ERC20 token standard
+#LolToken - ICO
+It is a decentralized application to facilitate initial coin offering sale of LolToken. You can use Goerli ETH to buy the tokens.
